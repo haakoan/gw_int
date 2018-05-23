@@ -1,9 +1,0 @@
-program main
-  use tblinf
-  implicit none
-  real(kind=8) ksa 
-  call set_tbl()
-  ksa = lookforkey(0,0,0,0,1,-1,0,0,0,0)
-  write(*,*) ksa
-
-end program main

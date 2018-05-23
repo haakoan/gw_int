@@ -1,0 +1,15 @@
+3j: 18 -> 33650 
+Hash file:     ./test_table_18.3j
+Version:       6
+Entries:       1 (0.0 %)
+Type:          3j
+c14n:          0
+Hashentries:   33650
+Hash function: 
+Hash func prm: 0 0 0 0 0 0 0 0 0 0
+Max 2j:        36
+Max abs err:   1.11022e-16
+Max rel err:   1.11022e-16 (|val| >  1e-10)
+Max small val: 0.00000e+00 (|val| <= 1e-10)
+Checksums:     0x0079df3f12cc4bc0, 0x0079df3912ccc894
+Tested 193978 symbols, 193978 in hash table, 0 trivial 0, 0 missing.

@@ -1,0 +1,14 @@
+Hash file:     ./test_hashed_3_6_12.9j
+Version:       6
+Entries:       733 (35.8 %)
+Type:          9j
+c14n:          1
+Hashentries:   2048
+Hash function: XOR_RLR_XOR_RLR
+Hash func prm: 15 5 17 21 17 24 0 0 0 0
+Max 2j:        12
+Max abs err:   1.11022e-16
+Max rel err:   1.11022e-16 (|val| >  1e-10)
+Max small val: 0.00000e+00 (|val| <= 1e-10)
+Checksums:     0x9e17405d64183ef6, 0xc117405a64183429
+Tested 262144 symbols, 262144 in hash table, 0 trivial 0, 0 missing.

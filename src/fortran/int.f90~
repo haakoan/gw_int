@@ -1,0 +1,39 @@
+module fint
+  use sph_leg_pol
+  !USE quadpack, only : dqag
+  implicit none
+
+  integer, private :: m1,m2,m3,l1,l2,l3,n1,n2,n3,n4
+CONTAINS
+  
+  function integrand(x) result(igr)
+    implicit none
+    real(kind=8), intent(in) :: x
+    real(kind=8) :: igr
+    igr = plgndr(l1,m1,x)*plgndr(l2,m2,x)*plgndr(l3,m3,x)*x**n1 * sqrt(1d0-x**2)**n2
+  end function integrand
+
+
+  subroutine cint(b1,b2,b3,c1,c2,c3,a1,a2,a3,a4,igrs)
+    implicit none
+    integer, intent(in) :: b1,b2,b3,c1,c2,c3,a1,a2,a3,a4
+    real(kind=8), intent(out) :: igrs
+    real(kind=8) :: res,absr
+    integer :: ier,last,nvl
+    real(kind=8),dimension(4*30000) :: alist
+    integer, dimension(30000) :: iord,blist
+    n1 = a1 ; n2 = a2 ; n3 = a3 ; n4 = a4
+    l1 = b1 ; l2 = b2 ; l3 = b3
+    m1 = c1 ; m2 = c2 ; m3 = c3
+    call dqag(integrand,-1d0,1d0,1d-5,1d-5,4,igrs,absr,nvl,ier,30000 &
+         ,4*30000,last,blist,alist)
+    ! if(ier .ne. 0) then
+    !    write(*,*) ier, l1,m1,l2,m2,l3,m3,n1,n2,n3,n4
+    !    call exit(1)
+    ! end if
+    !write(*,*) ier,absr,res,n1+l1+m1+l2+m2+l3+m3
+    return
+    !igrs = 0.0d0
+    !return
+  end subroutine cint
+end module fint

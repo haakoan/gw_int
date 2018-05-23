@@ -1,0 +1,15 @@
+6j:  8 -> 3004 
+Hash file:     ./test_table_8_float128.6j
+Version:       6
+Entries:       1 (0.0 %)
+Type:          6j
+c14n:          2
+Hashentries:   3004
+Hash function: 
+Hash func prm: 0 0 0 0 0 0 0 0 0 0
+Max 2j:        16
+Max abs err:   9.62965e-35
+Max rel err:   9.62965e-35 (|val| >  1e-10)
+Max small val: 0.00000e+00 (|val| <= 1e-10)
+Checksums:     0xf26d54c731878b34, 0xf26d54c33187809f
+Tested 531441 symbols, 531441 in hash table, 0 trivial 0, 0 missing.

@@ -1,0 +1,141 @@
+module al_int
+      use ffastwigxj
+      use fwigxjpf
+      use sph_leg_pol
+contains
+
+  function I1(l,m) result(igr)
+    !This function evaluates the integral \int_{-1}^_{1} P^{\ell}_m(t) dt.
+    !See Eq. 25 in "The overlap integral of three associated Legendre polynomials"
+    !https://doi.org/10.1016/S0893-9659(02)80004-0
+    !The input l,m should be integers and the output is a real number 
+
+    implicit none
+    integer, intent(in) :: l,m
+    real(kind=8) igr,dl,dm
+    dl = dble(l) ; dm = dble(m)!Gamma does not take int as input.
+    
+    !This is needed since the function might be called with values for m and l
+    !where Plm = 0
+    if((m .gt. l) .or. (l .lt. 0)) then
+       igr = 0.0d0
+       return
+    end if
+    if((mod(l,2) .eq. 0) .and. (mod(m,2) .eq. 0)) then
+       igr = 2.0d0*(2.d0**(dm-2.d0))*dm*gamma(0.5d0*dl)*gamma(0.5d0*(dl+dm+1.d0)) / &
+            (frc((l-m)/2)*gamma(0.5d0*(dl+3.d0)))
+       return
+    endif
+    if((mod(l,2) .ne. 0) .and. (mod(m,2) .ne. 0)) then
+       igr = -2.0d0*(2.d0**(dm-2.d0))*dm*gamma(0.5d0*dl)*gamma(0.5d0*(dl+dm+1.d0)) / &
+            (frc((l-m)/2)*gamma(0.5d0*(dl+3.d0)))
+       return
+    endif
+    igr = 0.0d0
+    return
+ 
+  end function I1
+
+  function I1n1n2(l,m,n1,n2) result(igr)
+    !This function is here to account for the fact that
+    !we have integrals like \int t^n1 (1-t^2)^n2 P_l^m dt
+    !In this case we need to evaluate the product of t^n1 (1-t^2)^n2 P_l^m
+    !before doing the integral. The product can be expressed as
+    !k_1 P^{l_1}_{m_1} + k_2 P^{l_2}_{m_2} .... (k1,k2... are constants).
+    !I have calculated these expressions for n1 = 0,1,2 and n2 = 0,1,2 ,
+    !given that n1+n2 < 3. We do not need higher terms for what we want to do
+    !and the the expressions are a mess for larger n's
+    !The function works by simply calling I1 of the right l and m and multiplying by the constants.
+
+    implicit none
+    integer, intent(in) :: l,m,n1,n2
+    real(kind=8) igr
+    if(n1 .eq. 0) then
+       if(n2 .eq. 0) then
+          igr = I1(l,m)
+       elseif(n2 .eq. 1) then
+          igr = 1.0d0/(dble(2*l+1))*(I1(l-1,m+1) - I1(l+1,m+1))
+       elseif(n2 .eq. 2) then
+          igr = ( (I1(l-2,m+2) - I1(l,m+2))/dble(2*l-1) - &
+                  (I1(l,m+2) - I1(l+2,m+2))/dble(2*l+3) )/dble(2*l+1)
+       endif
+    elseif(n1 .eq. 1) then
+       if(n2 .eq. 0) then
+          igr = ( dble(l-m+1)*I1(l+1,m) + dble(l+2)*I1(l-1,m) )/dble(2*l+1)
+       elseif(n2 .eq. 1) then
+          igr = ( (I1(l,m+1) - I1(l+2,m+1))*dble(l-m+1)/dble(2*l+3) + &
+                  (I1(l-2,m+1) - I1(l,m+1))*dble(l+m)/dble(2*l-1) )/dble(2*l+1)
+       endif
+    elseif(n1 .eq. 2) then
+       igr = ( (I1(l+2,m)*dble(l-m+2) + I1(l,m)*dble(l+m+1))*dble(l-m+1)/dble(2*l+3) + &
+            (I1(l,m)*dble(l-m) + I1(l-2,m)*dble(l+m-1))*dble(l+m)/dble(2*l-1) )/dble(2*l+1)
+    else
+       write(*,'(A)') "The program was run with n1 or n2 that is out of bounds"
+       write(*,*) n1,n2
+       call exit()
+    endif
+  end function I1n1n2
+
+  function I3(l1,m1,l2,m2,l3,m3,n1,n2) result(igr)
+    !This function evaluates the integral
+    !\int_{-1}^_{1}P^{\ell_1}_{m_1}(t)P^{\ell_2}_{m_2}(t)P^{\ell_3}_{m_3}(t) dt.
+    !See Eq. 23 in "The overlap integral of three associated Legendre polynomials"
+    !https://doi.org/10.1016/S0893-9659(02)80004-0
+    !The input l1,m1,l2,m2,l3,m3 are of type integer, output is real.
+    
+    implicit none
+    integer, intent(in) :: l1,m1,l2,m2,l3,m3,n1,n2
+    real(kind=8) igr,ncr !ncr is here to account for negativ m's
+    integer :: i, j !i takes the place of l12 in Eq.23, j the place of l123.
+    integer :: m12,ima,imi,jma,jmi,h1,h2,h3
+
+    if(mod(l1+l2+l3+m1+m2+m3+n1,2) .ne. 0) then
+       igr = 0.0d0
+       return
+    end if
+
+    !Use Eq.4 of "The overlap integral of three associated Legendre polynomials"
+    !to extend this function to negative m's. The expression given by Eq.23 is only
+    !valied for positiv ms
+    h1 = abs(m1); h2 = abs(m2); h3 = abs(m3)
+    ncr = 1.0d0
+    if(m1 .lt. 0) then
+       ncr = ncr*(-1.0d0)**(dble(h1))*frc(l1-h1)/frc(l1+h1)
+     endif
+    if(m2 .lt. 0) then
+       ncr = ncr*(-1.0d0)**(dble(h2))*frc(l1-h2)/frc(l1+h2)
+    endif
+    if(m3 .lt. 0) then
+       ncr = ncr*(-1.0d0)**(dble(h3))*frc(l1-h3)/frc(l1+h3)
+    endif
+    
+    imi = max(h1+h2,abs(l1-l2))
+    ima = l1+l2
+    igr = 0.0d0
+    do i = imi,ima
+       jma = i +l3
+       jmi = max(h1+h2+h3,abs(i-l3))
+       do j = jmi,jma
+          igr = igr + G(i,h1+h2,l3,h3,j,(h1+h2+h3))*G(l1,h1,l2,h2,i,(h1+h2))*I1n1n2(j,(h1+h2+h3),n1,n2)*&
+               sqrt(frc(j-(h1+h2+h3))/frc(j + (h1+h2+h3)))
+       end do
+    end do
+    igr = ncr*igr*sqrt( ( frc(l1+h1)*frc(l2+h2)*frc(l3+h3) )/ &
+         ( frc(l1-h1)*frc(l2-h2)*frc(l3-h3) ) )
+  end function I3
+
+  function G(l1,m1,l2,m2,l3,m3) result(gout)
+    !This function evalutes the symbol G defined by Eq. 21 and Eq.24 in
+    !"The overlap integral of three associated Legendre polynomials"
+    !https://doi.org/10.1016/S0893-9659(02)80004-0
+    !The input l1,m1,l2,m2,l3,m3 are of type integer, output is real.
+
+    implicit none
+    integer, intent(in) :: l1,m1,l2,m2,l3,m3
+    real(kind=8) gout
+    gout = (-1.d0)**(dble(m3))*(2.d0*dble(l3)+1.d0)*ffw3jja6(2*l1,2*l2,2*l3,0,0,0)*&
+         ffw3jja6(2*l1,2*l2,2*l3,2*m1,2*m2,-2*(m3))
+  end function G
+
+
+end module al_int

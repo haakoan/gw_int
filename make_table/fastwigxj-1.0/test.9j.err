@@ -1,0 +1,15 @@
+Limits: 3 6 12.
+Symbols generated: 2383.
+Read symbols: 2383.
+Wrote symbols: 732.
+Read chunks: 732.
+Wrote to file(s): 732.
+Last file entries: 732.
+File cycles: 1.
+Entries: 732.
+Hash entries: 2048.
+Fill factor: 0.357.
+Hash/table size: 0.00 GB, 16 B/entry.
+Collisions: 336.
+Coll factor: 0.459. (0.237 0.085)
+Coll sqrfct: 1.710.
